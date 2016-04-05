@@ -48,58 +48,39 @@ class ArrayInputTest extends InputTest
         return $dataSets;
     }
 
-    public function emptyValueProvider()
-    {
-        $dataSets = parent::emptyValueProvider();
-        array_walk($dataSets, function (&$set) {
-            $set['raw'] = [$set['raw']]; // Wrap value into an array.
-        });
-
-        return $dataSets;
-    }
-
-    public function mixedValueProvider()
-    {
-        $dataSets = parent::mixedValueProvider();
-        array_walk($dataSets, function (&$set) {
-            $set['raw'] = [$set['raw']]; // Wrap value into an array.
-        });
-
-        return $dataSets;
-    }
-
-    protected function createFilterChainMock($valueRaw = null, $valueFiltered = null)
+    protected function createFilterChainMock(array $valueMap = [])
     {
         // ArrayInput filters per each array value
-        if (is_array($valueRaw)) {
-            $valueRaw = current($valueRaw);
-        }
+        $valueMap = array_map(
+            function ($values) {
+                if (is_array($values[0])) {
+                    $values[0] = current($values[0]);
+                }
+                if (is_array($values[1])) {
+                    $values[1] = current($values[1]);
+                }
+                return $values;
+            },
+            $valueMap
+        );
 
-        if (is_array($valueFiltered)) {
-            $valueFiltered = current($valueFiltered);
-        }
-
-        return parent::createFilterChainMock($valueRaw, $valueFiltered);
+        return parent::createFilterChainMock($valueMap);
     }
 
-    protected function createValidatorChainMock($isValid = null, $value = null, $context = null, $messages = [])
+    protected function createValidatorChainMock(array $valueMap = [], $messages = [])
     {
         // ArrayInput validates per each array value
-        if (is_array($value)) {
-            $value = current($value);
-        }
+        $valueMap = array_map(
+            function ($values) {
+                if (is_array($values[0])) {
+                    $values[0] = current($values[0]);
+                }
+                return $values;
+            },
+            $valueMap
+        );
 
-        return parent::createValidatorChainMock($isValid, $value, $context, $messages);
-    }
-
-    protected function createNonEmptyValidatorMock($isValid, $value, $context =  null)
-    {
-        // ArrayInput validates per each array value
-        if (is_array($value)) {
-            $value = current($value);
-        }
-
-        return parent::createNonEmptyValidatorMock($isValid, $value, $context);
+        return parent::createValidatorChainMock($valueMap, $messages);
     }
 
     protected function getDummyValue($raw = true)
